@@ -4,7 +4,7 @@ def parse_input(file, part2=False):
     with open(file) as f:
         lines = f.read().splitlines()
 
-    seedline = lines[0][6:]
+    seedline = [int(a) for a in lines[0][6:].split(' ') if a != '']
     
     map_index = []
     for i,l in enumerate(lines):
@@ -13,72 +13,44 @@ def parse_input(file, part2=False):
 
     return lines, map_index, seedline
 
-    
-def location_for_all_seeds(lines, map_index, seedline, part2=False):
-    seeds = [int(a) for a in seedline.split(' ') if a != '']
-    if not part2:
+def input_seed_range(seedline, part2=False):
+    if part2:
+        smin = None
+        smax = None
 
-        locmin = None
-        for s in seeds:
-            loc = location_for_one_seed(lines, map_index, s)
-            if not locmin:
-                locmin = loc
-            elif loc < locmin:
-                locmin = loc
-        return locmin
-    
+        for i in range(0, len(seedline), 2):
+            a = seedline[i]
+            b = a + seedline[i+1]
+
+            if not smin: smin = a
+            if not smax: smax = b
+
+            if a < smin: smin = a
+            if b > smax: smax = b
+        return smin, smax 
+ 
     else:
-        locmin = None
-        for i in range(0, len(seeds), 2):
-            for s in range(seeds[i], seeds[i] + seeds[i+1]+1):
-                
-                loc = location_for_one_seed(lines, map_index, s)
-                if not locmin:
-                    locmin = loc
-                elif loc < locmin:
-                    locmin = loc
-        return locmin
-    
+        return min(seedline), max(seedline)
 
-def location_for_one_seed(lines, map_index, seed):
-    next_input = seed
-    # print('seed', next_input)
-    for i in map_index:
-        next_input = parse_input_output(next_input, lines, i)
-        # print(f'\t{next_input}')
-    return next_input
-
-
-def parse_input_output(source, lines, i):
-    j = 1
+def source_range_from_map(lines, i):
+    input_ranges = []
     while True:
-        try:
-            current_map = lines[i+j]
-        except IndexError:
+        i += 1
+        if lines[i] == '':
             break
-
-        if current_map == '': break
-
-        dest_range, source_range, n = [int(a) for a in current_map.split(' ') if a != '']
-
-        diff = (source - source_range)
-        if diff <= n and diff >= 0:
-            return dest_range + diff
         else:
-            j += 1
-            continue
-    return source
-    
-    return output
-lines, map_index, seedline = parse_input('05-input.txt')
-# print(seeds)
-locmin = location_for_all_seeds(lines, map_index, seedline)
-# print(locs)
-print('Part 1:', locmin)
+            dest, source, n = [int(a) for a in lines[i].split(' ') if a != '']
+        
+        diff = dest - source
+        in_range = source + n
+        input_ranges.append((source, in_range, diff))
+    return input_ranges
+        
 
-lines, map_index, seedline = parse_input('05-input.txt')
-# print(len(seedline))
-locmin = location_for_all_seeds(lines, map_index, seedline, part2=True)
-# print(locs)
-print('Part 2:', locmin)
 
+
+lines, map_index, seedline = parse_input('05-sample.txt')
+
+# print(input_seed_range(seedline))
+# print(input_seed_range(seedline, part2=True))
+print(source_range_from_map(lines, 2))
